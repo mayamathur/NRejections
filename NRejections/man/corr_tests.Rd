@@ -67,18 +67,8 @@ and results of a test of the global null hypothesis at \code{alpha.fam} of the g
 can be conducted based on the number of rejections or based on various FWER-control methods (see References).
 }
 \examples{
-# uses a too-small number of resamples as a toy example
-corr_tests( d = attitude,
-X = "complaints",
-C = c("privileges", "learning"),
-Ys = c("rating", "raises"),
-B=50,
-cores=1,
-alpha = 0.05,
-alpha.fam = 0.05,
-method = c( "nreject", "bonferroni", "holm", "minP", "Wstep", "romano" ) )
-
 \donttest{
+##### Example 1 #####
 data(rock)
 
 res = corr_tests( d = rock,
@@ -92,6 +82,7 @@ res = corr_tests( d = rock,
 mean( as.numeric(res$nrej.bt) ) }
 
 \donttest{
+##### Example 1 #####
 cor = make_corr_mat( nX = 10,
 nY = 20,
 rho.XX = 0.10,

@@ -8,5 +8,5 @@ Description: Implements methods in Mathur and VanderWeele (in preparation) to ch
 LazyData: true
 License: GPL-2
 Imports: stats, doParallel, matrixcalc, StepwiseTest, foreach, mvtnorm
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Suggests: testthat

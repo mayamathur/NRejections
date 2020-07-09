@@ -108,18 +108,8 @@ fix_input = function( X,
 #' methods for p-value adjustment. Taylor & Francis Group.
 #' @export
 #' @examples
-#' # uses a too-small number of resamples as a toy example
-#' corr_tests( d = attitude,
-#' X = "complaints",
-#' C = c("privileges", "learning"),
-#' Ys = c("rating", "raises"),
-#' B=50,
-#' cores=1,
-#' alpha = 0.05,
-#' alpha.fam = 0.05,
-#' method = c( "nreject", "bonferroni", "holm", "minP", "Wstep", "romano" ) )
-#' 
 #' \donttest{
+#' ##### Example 1 #####
 #' data(rock)
 #'
 #'res = corr_tests( d = rock,
@@ -133,6 +123,7 @@ fix_input = function( X,
 #'mean( as.numeric(res$nrej.bt) ) }
 #'
 #'\donttest{
+#' ##### Example 1 #####
 #' cor = make_corr_mat( nX = 10,
 #'nY = 20,
 #'rho.XX = 0.10,
@@ -272,10 +263,17 @@ corr_tests = function( d,
   ######## Romano ########
   
   if ("romano" %in% method ) {
-    
     # test stats are already centered
-    rom = FWERkControl( samp.res$tvals, as.matrix( resamps$t.bt ), k = 1, alpha = alpha.fam )
-    jt.rej.Romano = sum(rom$Reject) > 0
+    tryCatch({
+      rom = FWERkControl( samp.res$tvals,
+                          as.matrix( resamps$t.bt ),
+                          k = 1,
+                          alpha = alpha.fam )
+      jt.rej.Romano = sum(rom$Reject) > 0
+    }, error = function(err){
+      jt.rej.Romano <<- NA
+      warning("The above error is from StepwiseTest::FWERkControl")
+    })
     
     # store results
     global.test$reject[ global.test$method == "romano" ] = jt.rej.Romano
@@ -332,6 +330,8 @@ fit_model = function( X,
                       center.stats = FALSE,
                       bhat.orig = NA,  # bhat.orig is a single value now for just the correct Y
                       alpha = 0.05 ) {
+  
+  bhat.orig = as.numeric( as.character(bhat.orig) )
   
   if ( length(X) > 1 ) stop("X must have length 1")
 
@@ -438,11 +438,10 @@ dataset_result = function( d,
   
   # "flatten" the list of lists
   u = unlist(lists)
-  pvals = as.vector( u[ names(u) == "stats.pval" ] )
-  
-  tvals = as.vector( u[ names(u) == "stats.tval" ] )
-  bhats = as.vector( u[ names(u) == "stats.b" ] )
-  pvals = as.vector( u[ names(u) == "stats.pval" ] )
+  pvals = as.numeric( as.vector( u[ names(u) == "stats.pval" ] ) )
+  tvals = as.numeric( as.vector( u[ names(u) == "stats.tval" ] ) )
+  bhats = as.numeric( as.vector( u[ names(u) == "stats.b" ] ) )
+  pvals = as.numeric( as.vector( u[ names(u) == "stats.pval" ] ) )
 
   # save residuals
   # names of object u are resid.1, resid.2, ..., hence use of grepl 
@@ -516,6 +515,10 @@ resample_resid = function( d,
                            bhat.orig,
                            B=2000,
                            cores = NULL ) {
+  
+  
+
+  
   if ( length(X) > 1 ) stop("X must have length 1")
   
   if ( all( is.na(C) ) ) covars = X
@@ -527,7 +530,12 @@ resample_resid = function( d,
   if ( B < 1000 ) warning("Number of resamples is too small to ensure good asymptotic behavior of resampling.")
   
   # compute Y-hat using residuals
+  #browser()
+  # convert residuals (character) to numeric
+  resid = as.matrix( apply(as.data.frame(resid), 2, as.numeric ) )
   Yhat = d[, Ys] - resid
+  
+
   
   # fix the existing covariates
   Xs = as.data.frame( d[ , covars ] )
